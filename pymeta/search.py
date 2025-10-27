@@ -106,6 +106,95 @@ class PyMeta:
             logging.debug('Added URL: {}'.format(url))
 
 
+class PyMetaAPI:
+    """Google Custom Search API implementation for PyMeta"""
+    
+    def __init__(self, api_key, search_engine_id, target, file_type, max_results=50):
+        self.api_key = api_key
+        self.search_engine_id = search_engine_id
+        self.target = target
+        self.file_type = file_type.lower()
+        self.max_results = max_results
+        self.results = []
+        self.api_url = "https://www.googleapis.com/customsearch/v1"
+    
+    def search(self):
+        """Search for files using Google Custom Search API"""
+        start_index = 1
+        
+        while len(self.results) < self.max_results:
+            try:
+                # Google API has a limit of 100 results
+                if start_index > 100:
+                    Log.info('Reached Google API limit of 100 results')
+                    break
+                
+                # Build the API request
+                params = {
+                    'key': self.api_key,
+                    'cx': self.search_engine_id,
+                    'q': f'site:{self.target} filetype:{self.file_type}',
+                    'start': start_index
+                }
+                
+                logging.debug(f'API Request: {self.api_url} with start={start_index}')
+                response = requests.get(self.api_url, params=params, timeout=10)
+                
+                # Check for API errors
+                if response.status_code == 429:
+                    Log.warn('API quota limit exceeded! Daily limit reached.')
+                    break
+                elif response.status_code != 200:
+                    Log.warn(f'API request failed with status code: {response.status_code}')
+                    break
+                
+                data = response.json()
+                
+                # Check for errors in response
+                if 'error' in data:
+                    error_msg = data['error'].get('message', 'Unknown error')
+                    Log.warn(f'API Error: {error_msg}')
+                    break
+                
+                # Extract file URLs from results
+                if 'items' in data:
+                    for item in data['items']:
+                        url = item.get('link', '')
+                        if url and self.is_valid_file_url(url):
+                            self.results.append(url)
+                            logging.debug(f'Added URL: {url}')
+                    
+                    Log.info(f"{len(self.results):<3} | {self.file_type:<4} - API search (status: {response.status_code})")
+                else:
+                    # No more results
+                    logging.debug('No items in API response')
+                    break
+                
+                # Check if there are more pages
+                if 'queries' not in data or 'nextPage' not in data['queries']:
+                    logging.debug('No more pages available')
+                    break
+                
+                # Move to next page (Google returns 10 results per page)
+                start_index += 10
+                
+                # Brief delay between API calls
+                sleep(0.5)
+                
+            except requests.exceptions.RequestException as e:
+                Log.warn(f'API request error: {e}')
+                break
+            except Exception as e:
+                Log.warn(f'Unexpected error during API search: {e}')
+                break
+        
+        return self.results
+    
+    def is_valid_file_url(self, url):
+        """Check if URL points to the target file type"""
+        return url.lower().endswith(f'.{self.file_type}')
+
+
 def get_statuscode(resp):
     try:
         return resp.status_code

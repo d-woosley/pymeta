@@ -11,7 +11,7 @@ from pymeta import exif
 from pymeta import utils
 from pymeta.logger import *
 from subprocess import getoutput
-from pymeta.search import PyMeta, download_file
+from pymeta.search import PyMeta, PyMetaAPI, download_file
 
 
 def status(args):
@@ -24,7 +24,13 @@ def status(args):
         return
 
     Log.info("Target Domain     : {}".format(highlight(args.domain if args.domain else args.file_dir, "bold", "gray"), ))
-    Log.info("Search Engines(s) : {}".format(highlight(', '.join(args.engine), "bold", "gray")))
+    
+    # Show API mode status
+    if args.api_key and args.search_engine_id:
+        Log.info("Search Mode       : {}".format(highlight("Google Custom Search API", "bold", "green")))
+    else:
+        Log.info("Search Engines(s) : {}".format(highlight(', '.join(args.engine), "bold", "gray")))
+    
     Log.info("File Types(s)     : {}".format(highlight(', '.join(args.file_type), "bold", "gray"), ))
     Log.info("Max Downloads     : {}\n".format(highlight(args.max_results, "bold", "gray")))
 
@@ -40,6 +46,10 @@ def cli():
     search.add_argument('-s', '--search', dest='engine', default='google,bing', type=lambda x: utils.delimiter2list(x), help='Search Engine (Default=\'google,bing\')')
     search.add_argument('--file-type', default='pdf,xls,xlsx,csv,doc,docx,ppt,pptx', type=lambda x: utils.delimiter2list(x), help='File types to search')
     search.add_argument('-m', dest='max_results', type=int, default=50, help='Max results per type search')
+
+    api = args.add_argument_group("Google API Options")
+    api.add_argument('--api-key', dest='api_key', type=str, default=None, help='Google API key for Custom Search API')
+    api.add_argument('--search-engine-id', dest='search_engine_id', type=str, default=None, help='Google Custom Search Engine ID')
 
     p = args.add_argument_group("Proxy Options")
     pr = p.add_mutually_exclusive_group(required=False)
@@ -59,14 +69,25 @@ def cli():
 
 def start_scrape(args):
     tmp = []
-    Log.info('Searching {} for {} file type(s) on "{}"'.format(', '.join(args.engine), len(args.file_type), args.domain))
-
-    for file_type in args.file_type:
-        for search_engine in args.engine:
-            pym = PyMeta(search_engine, args.domain, file_type, args.timeout, 3, args.proxy, args.jitter, args.max_results)
-            if search_engine in pym.url.keys():
-                tmp += pym.search()
-                tmp = list(set(tmp))
+    
+    # Check if API credentials are provided
+    if args.api_key and args.search_engine_id:
+        Log.info('Using Google Custom Search API for {} file type(s) on "{}"'.format(len(args.file_type), args.domain))
+        
+        for file_type in args.file_type:
+            pym_api = PyMetaAPI(args.api_key, args.search_engine_id, args.domain, file_type, args.max_results)
+            tmp += pym_api.search()
+            tmp = list(set(tmp))
+    else:
+        # Fall back to web scraping
+        Log.info('Searching {} for {} file type(s) on "{}"'.format(', '.join(args.engine), len(args.file_type), args.domain))
+        
+        for file_type in args.file_type:
+            for search_engine in args.engine:
+                pym = PyMeta(search_engine, args.domain, file_type, args.timeout, 3, args.proxy, args.jitter, args.max_results)
+                if search_engine in pym.url.keys():
+                    tmp += pym.search()
+                    tmp = list(set(tmp))
 
     dwnld_dir = download_results(args, tmp)
     extract_exif(dwnld_dir, args.report_file, tmp)
@@ -131,6 +152,12 @@ def extract_exif(file_dir, output_file, urls=[]):
 def main():
     try:
         args = cli()
+        
+        # Validate API arguments
+        if (args.api_key and not args.search_engine_id) or (not args.api_key and args.search_engine_id):
+            Log.fail("Both --api-key and --search-engine-id must be provided together for API mode")
+            exit(1)
+        
         status(args)
         exif.exif_check()
 

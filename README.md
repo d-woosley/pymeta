@@ -26,16 +26,50 @@ Metadata is a common place for penetration testers and red teamers to find: doma
 &nbsp;&nbsp;&nbsp;&nbsp;**Mac OS** - ```brew install exiftool```
 
 ### Install:
-Install the last stable release from PyPi:
+**Recommended: Install with pipx (preferred method)**
+
+Using [pipx](https://pypa.github.io/pipx/) is the preferred installation method as it installs PyMeta in an isolated environment, preventing conflicts with system Python packages:
+
+```commandline
+pipx install pymetasec
+```
+
+If you don't have pipx installed:
+```commandline
+# Ubuntu/Debian
+sudo apt install pipx
+pipx ensurepath
+
+# Mac OS
+brew install pipx
+pipx ensurepath
+
+# Or via pip (then restart your shell)
+python3 -m pip install --user pipx
+python3 -m pipx ensurepath
+```
+
+**Alternative: Install with pip**
+
+You can also install directly with pip, though this may affect system Python packages:
 ```commandline
 pip3 install pymetasec
 ```
 
-Or, install the most recent code from GitHub:
-```
+**Install from source:**
+
+Clone the repository and install locally:
+```bash
 git clone https://github.com/m8sec/pymeta
 cd pymeta
-python3 setup.py install
+pipx install .
+# Or with pip: pip3 install .
+```
+
+Or install directly from GitHub without cloning:
+```bash
+pipx install git+https://github.com/m8sec/pymeta
+# Or with pip: pip3 install git+https://github.com/m8sec/pymeta
 ```
 
 ## Usage
@@ -85,7 +119,7 @@ Due to Google's aggressive anti-bot protections, web scraping may produce limite
 - API searches are more reliable than web scraping and less likely to be blocked
 - When using API mode, only Google search is used (Bing searches are disabled)
 
-> **NOTE**: Thanks to Beau Bullock [(@dafthack)](https://twitter.com/dafthack) and the [https://github.com/dafthack/PowerMeta](https://github.com/dafthack/PowerMeta) project for the above steps on getting a Google API key
+> **NOTE**: Thanks to Beau Bullock [(@dafthack)](https://twitter.com/dafthack) and the [PowerMeta](https://github.com/dafthack/PowerMeta) project for the above steps on getting a Google API key.
 
 ## All Options
 ```

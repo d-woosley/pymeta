@@ -16,7 +16,9 @@ setup(
     package_data={'pymeta': ['resources/*']},
     install_requires=[
         'requests>=2.28.1',
-        'bs4>=0.0.1'
+        'bs4>=0.0.1',
+        'tldextract>=3.0.0',
+        'lxml>=4.9.0'
     ],
     classifiers = [
         "Environment :: Console",
