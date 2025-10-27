@@ -16,7 +16,7 @@ from pymeta.search import PyMeta, PyMetaAPI, download_file
 
 def status(args):
 
-    VERSION = 'v1.2.0'
+    VERSION = 'v1.3.0'
 
     print("\nPyMeta {} - {}\n".format(VERSION, highlight("by @m8sec", "bold", "gray")))
 

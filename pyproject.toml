@@ -1,6 +1,6 @@
 [project]
 name = "pymetasec"
-version = "1.2.0"
+version = "1.3.0"
 description = "PyMeta is a Python3 rewrite of PowerMeta for metadata extraction from files found via Google and Bing searches."
 authors = [
     { name = "m8sec" }
