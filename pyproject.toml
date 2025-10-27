@@ -1,0 +1,39 @@
+[project]
+name = "pymetasec"
+version = "1.2.0"
+description = "PyMeta is a Python3 rewrite of PowerMeta for metadata extraction from files found via Google and Bing searches."
+authors = [
+    { name = "m8sec" }
+]
+readme = "README.md"
+license = {text = "GPL-3.0-or-later"}
+requires-python = ">=3.6"
+classifiers = [
+    "Environment :: Console",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Topic :: Security"
+]
+dependencies = [
+    "requests>=2.28.1",
+    "bs4>=0.0.1"
+]
+
+[project.urls]
+Homepage = "https://github.com/m8sec/pymeta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pymeta*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+pymeta = ["resources/*"]
+
+[project.scripts]
+pymeta = "pymeta:main"
+pymetasec = "pymeta:main"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
