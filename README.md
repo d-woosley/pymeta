@@ -11,6 +11,8 @@ PyMeta is a Python3 rewrite of the tool [PowerMeta](https://github.com/dafthack/
 
 Once downloaded, metadata is extracted from these files using Phil Harvey's [exiftool](https://sno.phy.queensu.ca/~phil/exiftool/) and added to a ```.csv``` report.  Alternatively, Pymeta can be pointed at a directory to extract metadata from files manually downloaded using the ```-dir``` command line argument. See the [Usage](#Usage), or [All Options](#All-Options) section for more information.
 
+> **Note:** Due to Google's increasingly aggressive anti-bot measures, web scraping may yield limited results. For improved reliability and more consistent results, consider using the Google Custom Search API with the `--api-key` and `--search-engine-id` flags.
+
 #### Why?
 Metadata is a common place for penetration testers and red teamers to find: domains, user accounts, naming conventions, software/version numbers, and more!
 
@@ -37,12 +39,53 @@ python3 setup.py install
 ```
 
 ## Usage
+
+### Standard Search (Web Scraping)
 * Search Google and Bing for files within example.com and extract metadata to a csv report:<br>
 ```pymeta -d example.com```
 
 * Extract metadata from files within the given directory and create csv report:<br>
 ```pymeta -dir Downloads/```
 
+### Google API Search
+Due to Google's aggressive anti-bot protections, web scraping may produce limited results. For better reliability, use the Google API option:
+
+```pymeta -d example.com --api-key "your_api_key_here" --search-engine-id "your_search_engine_id"```
+
+#### Setting up Google API
+
+**Step 1: Create Google Cloud Project**
+- Go to [Google Cloud Console](https://cloud.google.com/)
+- Login with a Google account
+- Click "Select a project" → "New Project" 
+- Enter a project name (e.g., "PyMeta-API")
+- Click "Create"
+
+**Step 2: Enable Custom Search API**
+- In your project, go to "APIs & Services" → "Library"
+- Search for "Custom Search API"
+- Click on it and press "Enable"
+
+**Step 3: Create API Key**
+- Go to "APIs & Services" → "Credentials"
+- Click "Create Credentials" → "API Key"
+- Copy your API key (you'll need this for the `--api-key` flag)
+
+**Step 4: Create Custom Search Engine**
+- Go to [Google Programmable Search Engine](https://programmablesearchengine.google.com/)
+- Click "Add a search engine" 
+- Enter any name (e.g., "PyMeta Search")
+- For "Sites to search", select "Search the entire web"
+- Click "Create"
+- Copy your Search Engine ID (you'll need this for the `--search-engine-id` flag)
+
+**API Usage Notes:**
+- Google provides 100 free API calls per day
+- Additional requests cost $5 per 1000 queries
+- API searches are more reliable than web scraping and less likely to be blocked
+- When using API mode, only Google search is used (Bing searches are disabled)
+
+> **NOTE**: Thanks to Beau Bullock [(@dafthack)](https://twitter.com/dafthack) and the [https://github.com/dafthack/PowerMeta](https://github.com/dafthack/PowerMeta) project for the above steps on getting a Google API key
 
 ## All Options
 ```
@@ -56,6 +99,10 @@ Search Options:
   -s ENGINE, --search ENGINE    Search Engine (Default='google,bing')
   --file-type FILE_TYPE         File types to search (default=pdf,xls,xlsx,csv,doc,docx,ppt,pptx)
   -m MAX_RESULTS                Max results per type search
+
+Google API Options:
+  --api-key API_KEY             Google API key for Custom Search API
+  --search-engine-id ID         Google Custom Search Engine ID
 
 Proxy Options:
   --proxy PROXY         Proxy requests (IP:Port)
